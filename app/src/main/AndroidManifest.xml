@@ -19,10 +19,13 @@
             android:exported="true"
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+           <intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="https" android:host="hnt-tournaments.firebaseapp.com" android:pathPrefix="/__/auth/handler" />
+    <data android:scheme="https" android:host="hnt-tournaments.web.app" android:pathPrefix="/__/auth/handler" />
+</intent-filter>
         </activity>
     </application>
 </manifest>
