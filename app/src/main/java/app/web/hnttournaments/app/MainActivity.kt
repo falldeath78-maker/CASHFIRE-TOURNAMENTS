@@ -220,11 +220,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // --- NAYA FUNCTION: Chrome se wapas aane par trigger hota hai ---
+      // --- NAYA FUNCTION: Chrome se wapas aane par trigger hota hai ---
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if (intent?.data != null) {
-            web.loadUrl(intent.data.toString())
+        val data = intent?.data
+        if (data != null) {
+            // Agar custom scheme (cashfire://) se aaya hai, toh website dobara load karo
+            if (data.scheme == "cashfire") {
+                web.loadUrl("https://hnt-tournaments.web.app/")
+            } else {
+                // Agar koi aur link hai toh wo load karo
+                web.loadUrl(data.toString())
+            }
         }
     }
 
