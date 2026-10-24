@@ -31,6 +31,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import java.io.File
 import java.io.FileOutputStream
+import androidx.browser.customtabs.CustomTabsIntent
 
 class MainActivity : AppCompatActivity() {
 
@@ -111,10 +112,27 @@ class MainActivity : AppCompatActivity() {
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
+                val url = uri.toString()
                 val scheme = uri.scheme
+
+                // 1. Google Login ko Chrome Custom Tab mein kholo
+                if (url.contains("accounts.google.com") || url.contains("hnt-tournaments.firebaseapp.com")) {
+                    try {
+                        val builder = CustomTabsIntent.Builder()
+                        val customTabsIntent = builder.build()
+                        customTabsIntent.launchUrl(this@MainActivity, uri)
+                    } catch (e: Exception) {
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    }
+                    return true 
+                }
+
+                // 2. Internal links WebView mein kholo
                 if (scheme == "http" || scheme == "https") {
                     if (keepInsideApp || isInternal(uri.host)) return false
                 }
+
+                // 3. Baqi external links browser mein kholo
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
                 } catch (e: Exception) {}
@@ -192,10 +210,21 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        if (savedInstanceState == null) {
+        // --- DEEP LINK CHECK (Yeh naya add kiya hai) ---
+        if (intent?.data != null) {
+            web.loadUrl(intent.data.toString())
+        } else if (savedInstanceState == null) {
             web.loadUrl(startUrl)
         } else {
             web.restoreState(savedInstanceState)
+        }
+    }
+
+    // --- NAYA FUNCTION: Chrome se wapas aane par trigger hota hai ---
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent?.data != null) {
+            web.loadUrl(intent.data.toString())
         }
     }
 
