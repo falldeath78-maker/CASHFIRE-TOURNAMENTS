@@ -34,7 +34,13 @@
                 <data android:scheme="https" android:host="hnt-tournaments.firebaseapp.com" android:pathPrefix="/__/auth/handler" />
                 <data android:scheme="https" android:host="hnt-tournaments.web.app" android:pathPrefix="/__/auth/handler" />
             </intent-filter>
-
+            <!-- Ye custom link Chrome ko wapas app mein laane ke liye hai -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cashfire" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>
