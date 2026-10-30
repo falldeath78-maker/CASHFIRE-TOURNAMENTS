@@ -73,11 +73,16 @@ class MainActivity : AppCompatActivity() {
         val rootLayout = FrameLayout(this)
         rootLayout.setBackgroundColor(Color.parseColor("#4F63FF"))
 
+           // Pull-to-refresh ko band karne ke liye
         swipeRefresh = SwipeRefreshLayout(this)
+        swipeRefresh.isEnabled = false // 👈 Ye line refresh ko band karegi
+        
         web = WebView(this)
         swipeRefresh.addView(web)
         rootLayout.addView(swipeRefresh, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-
+        
+        // Scroll karte waqt aane wale blue/white glow ko hatane ke liye
+        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
         setContentView(rootLayout)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
