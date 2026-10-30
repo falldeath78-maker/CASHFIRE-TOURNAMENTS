@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
 
         web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
 
-        swipeRefresh.setOnRefreshListener { web.reload() }
+        
 
         web.setDownloadListener { url, _, _, _, _ ->
             try {
