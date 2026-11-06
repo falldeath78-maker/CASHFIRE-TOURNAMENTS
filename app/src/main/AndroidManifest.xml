@@ -14,26 +14,20 @@
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true">
 
-        <activity
-            <!-- Ye filter custom link (cashfire://) ko catch karega -->
-<intent-filter>
-    <action android:name="android.intent.action.VIEW" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <data android:scheme="cashfire" />
-</intent-filter>
+              <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode">
-            
-            <!-- 1. Ye app ko home screen par laane ke liye hai -->
+
+            <!-- 1. App ko home screen par laane ke liye -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 2. Ye Google Login ke baad wapas app mein aane ke liye hai -->
+            <!-- 2. Google Login ke baad wapas app mein aane ke liye -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -41,13 +35,16 @@
                 <data android:scheme="https" android:host="hnt-tournaments.firebaseapp.com" android:pathPrefix="/__/auth/handler" />
                 <data android:scheme="https" android:host="hnt-tournaments.web.app" android:pathPrefix="/__/auth/handler" />
             </intent-filter>
-            <!-- Ye custom link Chrome ko wapas app mein laane ke liye hai -->
+
+            <!-- 3. Custom Link (cashfire://) ke liye -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="cashfire" />
             </intent-filter>
+
+        </activity>
         </activity>
     </application>
 </manifest>
