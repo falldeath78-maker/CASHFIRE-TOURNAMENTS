@@ -46,6 +46,7 @@ import java.io.FileOutputStream
 class MainActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
+    private lateinit var credentialManager: CredentialManager //
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private var fileCallback: ValueCallback<Array<Uri>>? = null
 
@@ -113,7 +114,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
+                 // JavaScript Interface for Google Sign-In
+        web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
+        // Naya interface Google token ke liye
+        web.addJavascriptInterface(GoogleAuthInterface(), "AndroidGoogleAuth")
 
+        // Google Sign-In initialize karein
+        initGoogleSignIn()
         web.setDownloadListener { url, _, _, _, _ ->
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -230,7 +237,7 @@ class MainActivity : AppCompatActivity() {
             web.restoreState(savedInstanceState)
         }
     }
-
+     initGoogleSignIn()
     // Chrome se wapas aane par trigger hota hai
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
@@ -245,6 +252,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class WebAppInterface {
+            // ==========================================
+    // GOOGLE SIGN IN (Native Bottom Sheet ke liye)
+    // ==========================================
+    private fun initGoogleSignIn() {
+        credentialManager = CredentialManager.create(this)
+    }
+
+    inner class GoogleAuthInterface {
+        @JavascriptInterface
+        fun signInWithGoogle(webClientId: String) {
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(webClientId)
+                .setAutoSelectEnabled(false)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val result = credentialManager.getCredential(
+                        context = this@MainActivity,
+                        request = request
+                    )
+                    handleSignInResult(result)
+                } catch (e: GetCredentialException) {
+                    runOnUiThread {
+                        web.evaluateJavascript("onGoogleSignInError('${e.message}')", null)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleSignInResult(result: androidx.credentials.GetCredentialResponse) {
+        val credential = result.credential
+        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            try {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val idToken = googleIdTokenCredential.idToken
+
+                runOnUiThread {
+                    web.evaluateJson("onGoogleSignInSuccess('$idToken')", null)
+                }
+            } catch (e: GoogleIdTokenParsingException) {
+                runOnUiThread {
+                    web.evaluateJavascript("onGoogleSignInError('Token parsing failed')", null)
+                }
+            }
+        }
+    }
+    // ==========================================
         @JavascriptInterface
         fun downloadBase64(filename: String, base64Data: String) {
             try {
