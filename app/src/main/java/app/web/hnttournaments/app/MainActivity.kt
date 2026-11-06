@@ -25,13 +25,13 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import java.io.File
 import java.io.FileOutputStream
-import androidx.browser.customtabs.CustomTabsIntent
 
 class MainActivity : AppCompatActivity() {
 
@@ -73,21 +73,19 @@ class MainActivity : AppCompatActivity() {
         val rootLayout = FrameLayout(this)
         rootLayout.setBackgroundColor(Color.parseColor("#4F63FF"))
 
-           // Pull-to-refresh ko band karne ke liye
         swipeRefresh = SwipeRefreshLayout(this)
-        swipeRefresh.isEnabled = false // 👈 Ye line refresh ko band karegi
-        
+        swipeRefresh.isEnabled = false // Pull-to-refresh disabled
         web = WebView(this)
         swipeRefresh.addView(web)
         rootLayout.addView(swipeRefresh, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        
-        // Scroll karte waqt aane wale blue/white glow ko hatane ke liye
-        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
+
         setContentView(rootLayout)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        
+        web.overScrollMode = android.view.View.OVER_SCROLL_NEVER
         web.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -105,8 +103,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
-
-        
 
         web.setDownloadListener { url, _, _, _, _ ->
             try {
@@ -215,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-               // Deep link check (Chrome se wapas aane par)
+        // Deep Link Check
         if (intent?.data != null) {
             web.loadUrl(intent.data.toString())
         } else if (savedInstanceState == null) {
@@ -224,16 +220,15 @@ class MainActivity : AppCompatActivity() {
             web.restoreState(savedInstanceState)
         }
     }
-      // --- NAYA FUNCTION: Chrome se wapas aane par trigger hota hai ---
+
+    // Chrome se wapas aane par trigger hota hai
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val data = intent?.data
         if (data != null) {
-            // Agar custom scheme (cashfire://) se aaya hai, toh website dobara load karo
             if (data.scheme == "cashfire") {
                 web.loadUrl("https://hnt-tournaments.web.app/")
             } else {
-                // Agar koi aur link hai toh wo load karo
                 web.loadUrl(data.toString())
             }
         }
