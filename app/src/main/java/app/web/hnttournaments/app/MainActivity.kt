@@ -1,15 +1,5 @@
 package app.web.hnttournaments.app
 
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.CustomCredential
-import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
@@ -39,15 +29,25 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
-    private lateinit var credentialManager: CredentialManager //
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var credentialManager: CredentialManager
     private var fileCallback: ValueCallback<Array<Uri>>? = null
 
     private val startUrl = "https://hnt-tournaments.web.app/"
@@ -114,13 +114,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
-                 // JavaScript Interface for Google Sign-In
-        web.addJavascriptInterface(WebAppInterface(), "AndroidDownloader")
-        // Naya interface Google token ke liye
         web.addJavascriptInterface(GoogleAuthInterface(), "AndroidGoogleAuth")
 
-        // Google Sign-In initialize karein
-        initGoogleSignIn()
         web.setDownloadListener { url, _, _, _, _ ->
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -133,7 +128,7 @@ class MainActivity : AppCompatActivity() {
                 val url = uri.toString()
                 val scheme = uri.scheme
 
-                // 1. Google Login ko Chrome Custom Tab mein kholo
+                // Google Login ko Chrome Custom Tab mein kholo (Fallback)
                 if (url.contains("accounts.google.com") || url.contains("hnt-tournaments.firebaseapp.com")) {
                     try {
                         val builder = CustomTabsIntent.Builder()
@@ -145,12 +140,11 @@ class MainActivity : AppCompatActivity() {
                     return true 
                 }
 
-                // 2. Internal links WebView mein kholo
+                // Internal links WebView mein kholo
                 if (scheme == "http" || scheme == "https") {
                     if (keepInsideApp || isInternal(uri.host)) return false
                 }
 
-                // 3. Baqi external links browser mein kholo
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
                 } catch (e: Exception) {}
@@ -236,25 +230,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             web.restoreState(savedInstanceState)
         }
-    }
-     initGoogleSignIn()
-    // Chrome se wapas aane par trigger hota hai
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        val data = intent?.data
-        if (data != null) {
-            if (data.scheme == "cashfire") {
-                web.loadUrl("https://hnt-tournaments.web.app/")
-            } else {
-                web.loadUrl(data.toString())
-            }
-        }
+
+        initGoogleSignIn()
     }
 
-    inner class WebAppInterface {
-            // ==========================================
-    // GOOGLE SIGN IN (Native Bottom Sheet ke liye)
-    // ==========================================
     private fun initGoogleSignIn() {
         credentialManager = CredentialManager.create(this)
     }
@@ -263,8 +242,8 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun signInWithGoogle(webClientId: String) {
             val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(webClientId)
+                .setFilterByAuthorizedAccounts(false) 
+                .setServerClientId(webClientId) 
                 .setAutoSelectEnabled(false)
                 .build()
 
@@ -296,7 +275,7 @@ class MainActivity : AppCompatActivity() {
                 val idToken = googleIdTokenCredential.idToken
 
                 runOnUiThread {
-                    web.evaluateJson("onGoogleSignInSuccess('$idToken')", null)
+                    web.evaluateJavascript("onGoogleSignInSuccess('$idToken')", null)
                 }
             } catch (e: GoogleIdTokenParsingException) {
                 runOnUiThread {
@@ -305,7 +284,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    // ==========================================
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val data = intent?.data
+        if (data != null) {
+            if (data.scheme == "cashfire") {
+                web.loadUrl("https://hnt-tournaments.web.app/")
+            } else {
+                web.loadUrl(data.toString())
+            }
+        }
+    }
+
+    inner class WebAppInterface {
         @JavascriptInterface
         fun downloadBase64(filename: String, base64Data: String) {
             try {
