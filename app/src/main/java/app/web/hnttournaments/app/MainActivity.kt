@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // --- DEEP LINK CHECK (Yeh naya add kiya hai) ---
+               // Deep link check (Chrome se wapas aane par)
         if (intent?.data != null) {
             web.loadUrl(intent.data.toString())
         } else if (savedInstanceState == null) {
@@ -224,7 +224,6 @@ class MainActivity : AppCompatActivity() {
             web.restoreState(savedInstanceState)
         }
     }
-
       // --- NAYA FUNCTION: Chrome se wapas aane par trigger hota hai ---
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
