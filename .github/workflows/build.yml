@@ -1,8 +1,3 @@
-      - name: Print SHA-1 Fingerprint
-        env:
-          KS_PASS: ${{ secrets.KS_PASS }}
-        run: |
-          keytool -list -v -keystore signing/release.jks -alias release -storepass "$KS_PASS"
 name: Build signed APK
 on:
   push:
@@ -41,6 +36,14 @@ jobs:
           echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/signing/release.jks" >> "$GITHUB_ENV"
           echo "KS_PASS=$KS_PASS" >> "$GITHUB_ENV"
           echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+
+      # 👇 Yahan add kiya gaya hai SHA-1 print karne ke liye 👇
+      - name: Print SHA-1 Fingerprint
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: |
+          keytool -list -v -keystore signing/release.jks -alias release -storepass "$KS_PASS"
+
       - name: Build release APK
         run: gradle :app:assembleRelease --no-daemon
       - name: Upload APK
