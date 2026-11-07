@@ -1,3 +1,8 @@
+      - name: Print SHA-1 Fingerprint
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: |
+          keytool -list -v -keystore signing/release.jks -alias release -storepass "$KS_PASS"
 name: Build signed APK
 on:
   push:
