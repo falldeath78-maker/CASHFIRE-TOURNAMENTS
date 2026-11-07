@@ -25,7 +25,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -128,16 +127,13 @@ class MainActivity : AppCompatActivity() {
                 val url = uri.toString()
                 val scheme = uri.scheme
 
-                // Google Login ko Chrome Custom Tab mein kholo (Fallback)
-                if (url.contains("accounts.google.com") || url.contains("hnt-tournaments.firebaseapp.com")) {
-                    try {
-                        val builder = CustomTabsIntent.Builder()
-                        val customTabsIntent = builder.build()
-                        customTabsIntent.launchUrl(this@MainActivity, uri)
-                    } catch (e: Exception) {
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    }
-                    return true 
+                // Google/Firebase auth URLs ko Chrome mein launch na karein.
+                // APK ka Google login native Credential Manager bridge se hona chahiye.
+                // Agar koi auth URL accidentally navigate ho, use WebView ke andar hi rakhein.
+                if (uri.host == "accounts.google.com" ||
+                    uri.host == "hnt-tournaments.firebaseapp.com" ||
+                    (uri.host == "hnt-tournaments.web.app" && uri.path?.startsWith("/__/auth/handler") == true)) {
+                    return false
                 }
 
                 // Internal links WebView mein kholo
